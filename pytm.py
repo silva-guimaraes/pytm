@@ -2,6 +2,13 @@
 import yt_dlp as ydl
 import requests
 import os
+import sys
+
+if len(sys.argv) == 2:
+    video = sys.argv[1]
+else: 
+    print('video?')
+    exit(1)
 
 options = ydl.YoutubeDL(
     {'format': 'mp4',
@@ -12,7 +19,7 @@ options = ydl.YoutubeDL(
 
 with options as ydl:
     result = ydl.extract_info(
-        'https://www.youtube.com/watch?v=TPYqrVDlc_4',
+        video,
         download=True)
 
 filepath = result['requested_downloads'][0]['filepath']
