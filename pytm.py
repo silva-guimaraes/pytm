@@ -1,5 +1,5 @@
 
-# pytm: Parse Youtube Music
+# pytm: Parse YouTube Music
 
 import yt_dlp as ydl
 import os
@@ -38,13 +38,13 @@ result_dir = os.path.join(base_dir, basename)
 
 for i in chapters:
     title = i['title']
-    output_path = os.path.join(result_dir, title + ".ogg")
-    command = 'ffmpeg -hide_banner -loglevel error -ss "{}" -to "{}" -i "{}" -vn -c copy "{}"'
+    output_path = os.path.join(result_dir, title + ".mp3")
+    command = 'ffmpeg -hide_banner -loglevel error -ss "{}" -to "{}" -i "{}" -vn "{}"'
     command = command.format(i['start_time'],
                              i['end_time'],
                              filepath,
                              output_path)
-    print(title + '...')
+    print("enconding " + title + '...')
     os.system(command)
 
 # os.remove(filepath)
