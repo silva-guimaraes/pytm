@@ -6,9 +6,9 @@ import os
 import sys
 
 if len(sys.argv) >= 2:
-    video = sys.argv[1]
+    video_url = sys.argv[1]
 else: 
-    print('video?')
+    print('vídeo?')
     exit(1)
 
 options = ydl.YoutubeDL(
@@ -17,15 +17,21 @@ options = ydl.YoutubeDL(
      'allow_multiple_video_stream': False
      })
 
+chapters = []
+result = {}
+
 with options as ydl:
     result = ydl.extract_info(
-        video,
-        download=True)
-
-chapters = result['chapters']
-
-if not chapters:
-    exit(0)
+        video_url,
+        download=False)
+    chapters = result['chapters']
+    if chapters:
+        result = ydl.extract_info(
+            video_url,
+            download=True)
+    else:
+        print('vídeo não possui capítulos.')
+        exit(1)
 
 filepath = result['requested_downloads'][0]['filepath']
 base_dir = os.path.dirname(filepath)
@@ -44,7 +50,7 @@ for i in chapters:
                              i['end_time'],
                              filepath,
                              output_path)
-    print("enconding " + title + '...')
+    print("fazendo enconding de " + title + '...')
     os.system(command)
 
 # os.remove(filepath)
