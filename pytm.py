@@ -3,6 +3,7 @@
 # pytm: Parse YouTube Music
 
 from bs4 import BeautifulSoup
+from typing import List, Tuple, Any, Dict, Union, SupportsIndex
 import shutil
 import yt_dlp
 import requests
@@ -37,7 +38,7 @@ class track:
     start = 0
     end = 0
 
-    def __init__(self, title, position, start, end):
+    def __init__(self, title: str, position: int, start: int, end: int):
         # self.artist = artist
         self.title = title
         self.position = position
@@ -49,7 +50,8 @@ class track:
             self.position, self.title, self.start, self.end, self.end - self.start)
 
 
-def extract_rym(rym_url):
+def extract_rym(rym_url: str) -> Tuple[List[track], str, object]:
+    rym_page: object
     try:
         print('pedido para {}...'.format(rym_url))
         rym_page = requests.get(rym_url, headers=headers)
@@ -58,10 +60,11 @@ def extract_rym(rym_url):
             file=sys.stderr)
         exit(1)
 
-    track_list = []
+    track_list: List[track] = []
     rym_page = BeautifulSoup(rym_page.text, 'html.parser')
-    album_title = rym_page.select('#column_container_right > div.section_main_info\
+    album_title: str = rym_page.select('#column_container_right > div.section_main_info\
 .section_outer > div > div.album_title')[0].contents[0].string.strip()
+
     # album_title = rym_page.find_all('div', {'class': 'album_title'})[0].contents[0].strip()
     print(album_title)
     track_starts = 0
@@ -84,7 +87,7 @@ def extract_rym(rym_url):
 # / (barra) é o denominador de diretórios no linux e mac e \ (contra barra) no windows
 # nenhuma faixa pode ter nenhum desses dois caracteres então nós trocamos por algum outro
 # caractere antes de separar a faixa
-def replace_slash(s):
+def replace_slash(s: str) -> str:
     s = s.replace('/', '|')
     s = s.replace('\\', '|')
     return s
@@ -104,7 +107,8 @@ def create_album_dir(metadata: dict, album_title: str) -> str:
     return yt_video_title
 
     
-def splice_video(metadata, yt_video_title, basename, start, end):
+def splice_video(metadata: dict, yt_video_title: str, basename: str,
+                 start, end):
     video_path = metadata['requested_downloads'][0]['filepath']
     filename = replace_slash(basename) + ".mp3"
     output_path = os.path.join(yt_video_title, filename)
@@ -112,28 +116,27 @@ def splice_video(metadata, yt_video_title, basename, start, end):
     command = 'ffmpeg -hide_banner -loglevel error -ss "{}" -to "{}" -i "{}" -vn "{}"'
     os.system(command.format(start, end, video_path, output_path))
 
-def split_chapters(metadata, yt_video_title, chapters):
+def split_chapters(metadata: dict, yt_video_title: str, chapters: List[Any]):
     for i in chapters:
         splice_video(metadata, yt_video_title, i['title'], i['start_time'], i['end_time'])
 
 
-def split_duration(metadata, yt_video_title, track_list):
+def split_duration(metadata: dict, yt_video_title: str, track_list: List[track]):
     for i in track_list:
         splice_video(metadata, yt_video_title, '{:02d}. {}'.format(i.position, i.title),
                      i.start, i.end) 
         
-def download_cover(album_dir, url):
+def download_cover(album_dir: str, url: str):
     local_filename = os.path.join(album_dir,'cover.png')
     with requests.get(url, stream=True, headers=headers) as r:
         with open(local_filename, 'wb') as f:
             shutil.copyfileobj(r.raw, f)
 
 def main():
-    track_list = []
-    album_title = ""
-    video_url = ""
-    rym_url = ""
-    album_dir = ""
+    track_list: List[track] = []
+    album_title: str = ""
+    video_url: str = ""
+    rym_url: str = ""
     
     if len(sys.argv) >= 2:
         video_url = sys.argv[1]
@@ -171,10 +174,6 @@ def main():
         split_chapters(metadata, chapters)
 
     # os.remove(filepath)
-
-def teste(foo: int, bar: str):
-    return 'bar: {}'.format(foo)
-
 
 if __name__ == "__main__":
     main()
